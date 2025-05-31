@@ -8,7 +8,6 @@ const { startFormTagihan, handleFormTagihanReply, userFormTagihanState } = requi
 
 
 
-
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 const WA_PHONE_NUMBER_ID = process.env.WA_PHONE_NUMBER_ID;
 const app = express();
@@ -47,18 +46,15 @@ async function handleWebhookPost(req, res, waInstance) {
     const from = messages.from;
     const type = messages.type;
 
-    // Jika user sedang mengisi form, handle inputnya
     if (userFormState[from] || userFormJhtState[from] || userFormTagihanState[from]) {
   if (type === 'text') {
     const text = messages.text.body;
 
-    // Cek apakah sedang mengisi form BPU
     if (userFormState[from]) {
       const handledBpu = await handleFormBpuReply(waInstance, from, text);
       if (handledBpu) return res.status(200).send('Form BPU handled');
     }
 
-    // Cek apakah sedang mengisi form JHT
     if (userFormJhtState[from]) {
       const handledJht = await handleFormJhtReply(waInstance, from, text);
       if (handledJht) return res.status(200).send('Form JHT handled');
@@ -74,13 +70,11 @@ async function handleWebhookPost(req, res, waInstance) {
 }
 
 
-    // Jika belum mengisi form, tangani pesan biasa atau interaktif
     if (type === 'text') {
       await firtMessage(waInstance, from);
     } else if (type === 'interactive') {
       const interactive = messages.interactive;
 
-      // List reply (pilihan menu list)
       if (interactive.type === 'list_reply') {
   const { id, title } = interactive.list_reply;
 
@@ -103,12 +97,10 @@ async function handleWebhookPost(req, res, waInstance) {
 }
 
 
-      // Button reply (tombol interaktif yang ditekan)
      if (interactive.type === 'button_reply') {
   const { id, title } = interactive.button_reply;
 
   if (id === 'mulai_form_bpu') {
-    // Mulai form setelah tombol "Mulai" ditekan
     await startFormBpu(waInstance, from);
     
   } else if (id === 'menu') {

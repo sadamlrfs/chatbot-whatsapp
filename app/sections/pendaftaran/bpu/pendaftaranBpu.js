@@ -1,5 +1,4 @@
 const sendText = require('../../../utils/sendText');
-const sendButton = require('../../../utils/sendButton');
 
 const formSteps = [
   { 
@@ -37,15 +36,26 @@ async function startFormBpu(wa, from) {
 }
 
 async function sendStartButton(wa, from) {
-  await sendText(wa, from, '*Formulir Pendaftaran BPU*\n\nKamu akan diminta mengisi data informasi untuk pendaftaran perserta BPU, *mohon isi data dengan benar!*');
-  await sendButton(
-    wa,
-    from,
-      'Tekan untuk memulai!',
-    [
-      { id: 'mulai_form_bpu', title: 'Mulai Isi Form' }
-    ]
-  );
+  const button_message = {
+    type: 'button',
+    header: {
+      type: 'text',
+      text: 'FORMULIR PENDAFTARAN BPU'
+    },
+    body: {
+      text: 'Kamu akan diminta mengisi data informasi untuk pendaftaran perserta BPU, *mohon isi data dengan benar!*'
+    },
+    action: {
+      buttons: [
+        {
+          type: 'reply',
+          reply: { id: 'mulai_form_bpu', title: 'Mulai Isi Form' }
+        },
+      ]
+    }
+  };
+
+  await wa.messages.interactive(button_message, from);
 }
 
 async function handleFormBpuReply(wa, from, message) {
@@ -56,7 +66,6 @@ async function handleFormBpuReply(wa, from, message) {
   const key = currentStep.key;
   const value = message.trim();
 
-  // 🔒 Validasi input
   if (key === 'nik') {
     const nikRegex = /^\d{16}$/;
     if (!nikRegex.test(value)) {
@@ -81,7 +90,6 @@ async function handleFormBpuReply(wa, from, message) {
     }
   }
 
-  // ✅ Simpan data jika lolos validasi
   state.data[key] = value;
   state.step++;
 
@@ -89,28 +97,36 @@ async function handleFormBpuReply(wa, from, message) {
     await sendText(wa, from, formSteps[state.step].prompt);
   } else {
     const d = state.data;
-    await sendText(
-      wa,
-      from,
-      `📋 *Seluruh Data Kamu Telah Diterima*\n\n` +
-      `Terima kasih, data kamu telah disimpan dan terima dengan isi data sebagai berikut:\n\n` +
+     const button_message = {
+  type: 'button',
+  header: {
+    type: 'text',
+    text: '📋DATA PENDAFTARAN DITERIMA',
+  },
+  body: {
+    text:
+        `Terima kasih, data kamu telah disimpan dan terima dengan isi data sebagai berikut:\n\n` +
       `*Nama:* ${d.nama}\n` +
       `*NIK:* ${d.nik}\n` +
       `*Tanggal Lahir:* ${d.tanggalLahir}\n` +
       `*Nama Ibu Kandung:* ${d.ibuKandung}\n` +
       `*Pekerjaan:* ${d.pekerjaan}\n` +
       `*Penghasilan:* ${d.penghasilan}\n\n` +
-      `Untuk informasi selanjutnya akan kami hubungi kemudian hari setelah data diverifikasi, mohon untuk ditunggu.`
-    );
+      `Kami akan memproses klaim JHT kamu. Silakan tunggu informasi selanjutnya🙏🏻`,
+  },
+  action: {
+    buttons: [
+      {
+        type: 'reply',
+        reply: { id: 'menu', title: 'Menu Utama' },
+      },
+    ],
+  },
+};
 
-    await sendButton(
-      wa,
-      from,
-      'Tekan untuk kembali ke menu utama!',
-      [
-        { id: 'menu', title: 'Menu Utama' }
-      ]
-    );
+// Kirim pesan tombol ini:
+await wa.messages.interactive(button_message, from);
+
 
     delete userFormState[from];
   }

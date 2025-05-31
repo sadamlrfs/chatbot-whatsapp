@@ -1,6 +1,3 @@
-const sendText = require('../../../utils/sendText');
-const sendButton = require('../../../utils/sendButton');
-
 const formTagihanSteps = [
   {
     key: 'npp',
@@ -12,7 +9,8 @@ const userFormTagihanState = {};
 
 async function startFormTagihan(wa, from) {
   userFormTagihanState[from] = { step: 0, data: {} };
-  await sendText(wa, from, formTagihanSteps[0].prompt);
+
+  await wa.messages.text({ body: formTagihanSteps[0].prompt }, from);
 }
 
 async function handleFormTagihanReply(wa, from, message) {
@@ -24,35 +22,47 @@ async function handleFormTagihanReply(wa, from, message) {
   const value = message.trim();
 
   if (!/^\d{8}$/.test(value)) {
-    await sendText(wa, from, '❌ NPP harus terdiri dari 8 digit angka.\nCoba lagi.');
+    await wa.messages.text(
+      { body: '❌ NPP harus terdiri dari 8 digit angka.\nCoba lagi.' },
+      from
+    );
     return true;
   }
 
   state.data[key] = value;
   state.step++;
 
-  const totalTagihan = 'Rp. 1.500.000'; 
-  await sendText(
-    wa,
-    from,
-    `✅ *Informasi Tagihan Iuran*\n\n` +
-    `*NPP Perusahaan:* ${value}\n` +
-    `*Total Tagihan:* ${totalTagihan}`
-  );
+  const totalTagihan = 'Rp. 1.500.000';
+  const button_message = {
+      type: 'button',
+      header: {
+        type: 'text',
+        text: '✅ Informasi Tagihan Iuran'
+      },
+      body: {
+        text: `*NPP Perusahaan:* ${value}\n` +
+        `*Total Tagihan:* ${totalTagihan}`
+      },
+      action: {
+        buttons: [
+          {
+            type: 'reply',
+            reply: {
+              id: 'menu',
+              title: 'Menu Utama'
+            }
+          }
+        ]
+      }
+  };
 
-  await sendButton(
-    wa,
-    from,
-    'Klik tombol di bawah untuk kembali ke Menu Utama',
-    [{ id: 'menu', title: 'Menu Utama' }]
-  );
+  await wa.messages.interactive(button_message, from);
 
   delete userFormTagihanState[from];
   return true;
 }
 
 module.exports = {
-  
   startFormTagihan,
   handleFormTagihanReply,
   userFormTagihanState,

@@ -1,5 +1,4 @@
 const sendText = require('../../../utils/sendText');
-const sendButton = require('../../../utils/sendButton');
 
 const formJhtSteps = [
   {
@@ -22,14 +21,27 @@ const formJhtSteps = [
 
 const userFormJhtState = {};
 
-async function sendStartJhtButton(wa, from) {
-  await sendText(wa, from, '*Formulir Klaim JHT*\n\nKamu akan diminta mengisi data untuk klaim JHT. *Mohon isi dengan benar!*');
-  await sendButton(
-    wa,
-    from,
-    'Tekan untuk memulai klaim JHT',
-    [{ id: 'form_jht', title: 'Mulai Klaim JHT' }]
-  );
+async function sendStartJhtButton(wa, to) {
+  const button_message = {
+    type: 'button',
+    header: {
+      type: 'text',
+      text: 'FORMULIR KLAIM JHT'
+    },
+    body: {
+      text: 'Kamu akan diminta mengisi data untuk klaim JHT. *Mohon isi dengan benar!*'
+    },
+    action: {
+      buttons: [
+        {
+          type: 'reply',
+          reply: { id: 'form_jht', title: 'Mulai Isi Form' }
+        },
+      ]
+    }
+  };
+
+  await wa.messages.interactive(button_message, to);
 }
 
 async function startFormJht(wa, from) {
@@ -73,7 +85,6 @@ async function handleFormJhtReply(wa, from, message) {
       break;
   }
 
-  // Simpan jawaban dan lanjut
   state.data[key] = value;
   state.step++;
 
@@ -81,23 +92,33 @@ async function handleFormJhtReply(wa, from, message) {
     await sendText(wa, from, formJhtSteps[state.step].prompt);
   } else {
     const d = state.data;
-    await sendText(
-      wa,
-      from,
-      `📋 *Data Klaim JHT Telah Diterima*\n\n` +
+   const button_message = {
+  type: 'button',
+  header: {
+    type: 'text',
+    text: '📋DATA KLAIM JHT DITERIMA',
+  },
+  body: {
+    text:
       `*Nama:* ${d.nama}\n` +
       `*NIK:* ${d.nik}\n` +
       `*KPJ:* ${d.kpj}\n` +
       `*No. Rekening:* ${d.rekening}\n\n` +
-      `Kami akan memproses klaim JHT kamu. Silakan tunggu informasi selanjutnya.`
-    );
+      `Kami akan memproses klaim JHT kamu. Silakan tunggu informasi selanjutnya🙏🏻`,
+  },
+  action: {
+    buttons: [
+      {
+        type: 'reply',
+        reply: { id: 'menu', title: 'Menu Utama' },
+      },
+    ],
+  },
+};
 
-    await sendButton(
-      wa,
-      from,
-      'Tekan tombol di bawah untuk kembali ke Menu Utama',
-      [{ id: 'menu', title: 'Menu Utama' }]
-    );
+// Kirim pesan tombol ini:
+await wa.messages.interactive(button_message, from);
+
 
     delete userFormJhtState[from];
   }
