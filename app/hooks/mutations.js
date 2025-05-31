@@ -3,6 +3,12 @@ const WhatsApp = require('whatsapp');
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 const WA_PHONE_NUMBER_ID = process.env.WA_PHONE_NUMBER_ID;
 const { sendText, firtMessage, pendaftaranPeserta, pelayananJaminan, informasiPelayanan } = require('../sections/sections');
+const { startFormBpu, sendStartButton, handleFormBpuReply, userFormState } = require('../sections/pendaftaran/bpu/pendaftaranBpu');
+const { startFormJht, sendStartJhtButton, handleFormJhtReply, userFormJhtState } = require('../sections/pelayanan/jht/klaimJht');
+const { startFormTagihan, handleFormTagihanReply, userFormTagihanState } = require('../sections/informasi/iuran/iuran');
+
+
+
 
 const wa = new WhatsApp(WA_PHONE_NUMBER_ID);
 const app = express();
@@ -40,41 +46,88 @@ async function handleWebhookPost(req, res, waInstance) {
     const from = messages.from;
     const type = messages.type;
 
-    if (type === 'text') {
-      const text = messages.text.body.toLowerCase();
+    // Jika user sedang mengisi form, handle inputnya
+    if (userFormState[from] || userFormJhtState[from] || userFormTagihanState[from]) {
+  if (type === 'text') {
+    const text = messages.text.body;
 
-      if (text === 'hello') {
-        await sendText(waInstance, from, 'Hello. How are you?');
-      } else if (text === 'list') {
-        await pendaftaranPeserta(waInstance, from);
-      } else if (text === 'buttons') {
-        await firtMessage(waInstance, from);
-      }
+    // Cek apakah sedang mengisi form BPU
+    if (userFormState[from]) {
+      const handledBpu = await handleFormBpuReply(waInstance, from, text);
+      if (handledBpu) return res.status(200).send('Form BPU handled');
     }
 
-    if (type === 'interactive') {
+    // Cek apakah sedang mengisi form JHT
+    if (userFormJhtState[from]) {
+      const handledJht = await handleFormJhtReply(waInstance, from, text);
+      if (handledJht) return res.status(200).send('Form JHT handled');
+    }
+
+    if (userFormTagihanState[from]) {
+  const handledTagihan = await handleFormTagihanReply(waInstance, from, text);
+  if (handledTagihan) return res.status(200).send('Form Tagihan handled');
+}
+  }
+
+  return res.status(200).send('Waiting for form input');
+}
+
+
+    // Jika belum mengisi form, tangani pesan biasa atau interaktif
+    if (type === 'text') {
+      await firtMessage(waInstance, from);
+    } else if (type === 'interactive') {
       const interactive = messages.interactive;
 
+      // List reply (pilihan menu list)
       if (interactive.type === 'list_reply') {
-        const { id, title } = interactive.list_reply;
-        await sendText(waInstance, from, `You selected: ${title} (${id})`);
-      }
+  const { id, title } = interactive.list_reply;
 
-      
+  switch (id) {
+    case 'pendaftaran_bpu':
+      await sendStartButton(waInstance, from);
+      break;
 
-      if (interactive.type === 'button_reply') {
-        const { id, title } = interactive.button_reply;
+      case 'klaim_jht':
+      await sendStartJhtButton(waInstance, from);
+      break;
 
-        if (id === 'pendaftaran') {
+      case 'info_iuran':
+    await startFormTagihan(waInstance, from);
+    break;
+    
+    default:
+      await sendText(waInstance, from, 'Anda memilih ' + title +'. Fitur masih dalam pengembangan.');
+  }
+}
+
+
+      // Button reply (tombol interaktif yang ditekan)
+     if (interactive.type === 'button_reply') {
+  const { id, title } = interactive.button_reply;
+
+  if (id === 'mulai_form_bpu') {
+    // Mulai form setelah tombol "Mulai" ditekan
+    await startFormBpu(waInstance, from);
+    
+  } else if (id === 'menu') {
+    await firtMessage(waInstance, from);} else if (id === 'pendaftaran') {
           await pendaftaranPeserta(waInstance, from);
         } else if (id === 'pelayanan') {
           await pelayananJaminan(waInstance, from);
-        }  else if (id === 'informasi') {
+        } else if (id === 'informasi') {
           await informasiPelayanan(waInstance, from);
-        } else {
-          await sendText(waInstance, from, `You selected button: ${title} (${id})`);
+        } else if (id === 'form_jht') {
+  await startFormJht(waInstance, from);
+} else if (id === 'info_iuran') {
+  await startFormTagihan(waInstance, from);
+}           
+        else {
+          await sendText(waInstance, from, `Anda memilih tombol: ${title} (${id})`);
         }
       }
+    } else {
+      await firtMessage(waInstance, from);
     }
 
     console.log(JSON.stringify(messages, null, 2));
@@ -82,6 +135,7 @@ async function handleWebhookPost(req, res, waInstance) {
 
   res.status(200).send('Webhook processed');
 }
+
 
 function handleWebhookGet(req, res) {
   const mode = req.query['hub.mode'];
