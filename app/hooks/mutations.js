@@ -1,7 +1,5 @@
 const express = require('express');
 const WhatsApp = require('whatsapp');
-const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
-const WA_PHONE_NUMBER_ID = process.env.WA_PHONE_NUMBER_ID;
 const { sendText, firtMessage, pendaftaranPeserta, pelayananJaminan, informasiPelayanan } = require('../sections/sections');
 const { startFormBpu, sendStartButton, handleFormBpuReply, userFormState } = require('../sections/pendaftaran/bpu/pendaftaranBpu');
 const { startFormJht, sendStartJhtButton, handleFormJhtReply, userFormJhtState } = require('../sections/pelayanan/jht/klaimJht');
@@ -10,10 +8,13 @@ const { startFormTagihan, handleFormTagihanReply, userFormTagihanState } = requi
 
 
 
-const wa = new WhatsApp(WA_PHONE_NUMBER_ID);
-const app = express();
 
-app.use(express.json());
+const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
+const WA_PHONE_NUMBER_ID = process.env.WA_PHONE_NUMBER_ID;
+const app = express();
+const wa = new WhatsApp(WA_PHONE_NUMBER_ID);
+
+app.use(express.json());  
 
 app.get('/', (req, res) => {
   res.send('Whatsapp with Node.js and Webhooks (using whatsapp lib)');
@@ -92,7 +93,7 @@ async function handleWebhookPost(req, res, waInstance) {
       await sendStartJhtButton(waInstance, from);
       break;
 
-      case 'info_iuran':
+      case 'info_tagihan':
     await startFormTagihan(waInstance, from);
     break;
     
