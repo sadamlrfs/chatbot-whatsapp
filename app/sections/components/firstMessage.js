@@ -14,7 +14,7 @@ async function firtMessage(wa, to) {
           type: 'reply',
           reply: {
             id: 'pendaftaran',
-            title: 'Pendaftaran Peserta'
+            title: 'Pendaftaran '
           }
         },
         {
