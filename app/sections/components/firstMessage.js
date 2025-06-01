@@ -1,38 +1,38 @@
 async function firtMessage(wa, to) {
   const button_message = {
-    type: 'button',
+    type: "button",
     header: {
-      type: 'text',
-      text: 'BPJS KETENAGAKERJAAN'
+      type: "text",
+      text: "BPJS KETENAGAKERJAAN",
     },
     body: {
-      text: 'Silahkan, anda dapat memperoleh informasi dengan memilih layanan berikut:'
+      text: "Silahkan, anda dapat memperoleh informasi dengan memilih layanan berikut:",
     },
     action: {
       buttons: [
         {
-          type: 'reply',
+          type: "reply",
           reply: {
-            id: 'pendaftaran',
-            title: 'Pendaftaran '
-          }
+            id: "pendaftaran",
+            title: "Pendaftaran ",
+          },
         },
         {
-          type: 'reply',
+          type: "reply",
           reply: {
-            id: 'pelayanan',
-            title: 'Pelayanan Jaminan'
-          }
+            id: "pelayanan",
+            title: "Pelayanan Jaminan",
+          },
         },
         {
-          type: 'reply',
+          type: "reply",
           reply: {
-            id: 'informasi',
-            title: 'Informasi'
-          }
-        }
-      ]
-    }
+            id: "informasi",
+            title: "Informasi",
+          },
+        },
+      ],
+    },
   };
 
   await wa.messages.interactive(button_message, to);
