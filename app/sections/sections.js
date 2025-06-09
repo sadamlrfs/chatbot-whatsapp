@@ -8,9 +8,11 @@ const {
   userFormState,
 } = require("./pendaftaran/bpu/pendaftaranBpu");
 const sendText = require("../utils/sendText");
+const sendImage = require("./components/sendImages");
 
 module.exports = {
   sendText,
+  sendImage,
   firtMessage,
   pendaftaranPeserta,
   pelayananJaminan,

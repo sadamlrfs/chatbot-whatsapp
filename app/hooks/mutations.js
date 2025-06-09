@@ -49,62 +49,123 @@ async function handleWebhookPost(req, res, waInstance) {
       const from = messages.from;
       const type = messages.type;
 
+      // Batalkan form jika user tekan tombol
       if (
         type === "interactive" &&
         (messages.interactive.type === "list_reply" ||
           messages.interactive.type === "button_reply")
       ) {
-        const isInForm =
-          userFormState[from] ||
-          userFormJhtState[from] ||
-          userFormTagihanState[from];
+        // Cek jika BUKAN tombol setuju/tidak setuju JHT
+        const buttonId =
+          messages.interactive.button_reply?.id ||
+          messages.interactive.list_reply?.id ||
+          "";
 
-        if (isInForm) {
-          delete userFormState[from];
-          delete userFormJhtState[from];
-          delete userFormTagihanState[from];
+        if (buttonId !== "jht_setuju" && buttonId !== "jht_tidak") {
+          const isInForm =
+            userFormState[from] ||
+            userFormJhtState[from] ||
+            userFormTagihanState[from];
 
-          await sendText(
-            waInstance,
-            from,
-            "⛔ Formulir sebelumnya dibatalkan karena Anda menekan tombol lain."
-          );
+          if (isInForm) {
+            delete userFormState[from];
+            delete userFormJhtState[from];
+            delete userFormTagihanState[from];
+
+            await sendText(
+              waInstance,
+              from,
+              "⛔ Formulir sebelumnya dibatalkan karena Anda menekan tombol lain."
+            );
+          }
         }
       }
 
-      // Baru setelah itu cek state dan handle form
-      if (
+      // Cek apakah user sedang dalam proses pengisian form
+      const isInForm =
         userFormState[from] ||
         userFormJhtState[from] ||
-        userFormTagihanState[from]
-      ) {
+        userFormTagihanState[from];
+
+      if (isInForm) {
         if (type === "text") {
           const text = messages.text.body;
 
           if (userFormState[from]) {
-            const handledBpu = await handleFormBpuReply(waInstance, from, text);
-            if (handledBpu) return res.status(200).send("Form BPU handled");
+            const handled = await handleFormBpuReply(
+              waInstance,
+              from,
+              text,
+              "text"
+            );
+            if (handled) return res.status(200).send("Form BPU handled");
           }
 
           if (userFormJhtState[from]) {
-            const handledJht = await handleFormJhtReply(waInstance, from, text);
-            if (handledJht) return res.status(200).send("Form JHT handled");
+            const handled = await handleFormJhtReply(
+              waInstance,
+              from,
+              text,
+              "text"
+            );
+            if (handled) return res.status(200).send("Form JHT handled");
           }
 
           if (userFormTagihanState[from]) {
-            const handledTagihan = await handleFormTagihanReply(
+            const handled = await handleFormTagihanReply(
               waInstance,
               from,
-              text
+              text,
+              "text"
             );
-            if (handledTagihan)
-              return res.status(200).send("Form Tagihan handled");
+            if (handled) return res.status(200).send("Form Tagihan handled");
+          }
+        } else if (type === "image" && messages.image?.id) {
+          const imageInfo = {
+            id: messages.image.id,
+            caption: messages.image.caption || "",
+            mime_type: messages.image.mime_type || "image/jpeg",
+          };
+
+          if (userFormState[from]) {
+            const handled = await handleFormBpuReply(
+              waInstance,
+              from,
+              null,
+              "image",
+              imageInfo
+            );
+            if (handled) return res.status(200).send("Form BPU image handled");
+          }
+
+          if (userFormJhtState[from]) {
+            const handled = await handleFormJhtReply(
+              waInstance,
+              from,
+              null,
+              "image",
+              imageInfo
+            );
+            if (handled) return res.status(200).send("Form JHT image handled");
+          }
+
+          if (userFormTagihanState[from]) {
+            const handled = await handleFormTagihanReply(
+              waInstance,
+              from,
+              null,
+              "image",
+              imageInfo
+            );
+            if (handled)
+              return res.status(200).send("Form Tagihan image handled");
           }
         }
 
         return res.status(200).send("Waiting for form input");
       }
 
+      // Jika bukan dalam form
       if (type === "text") {
         await firtMessage(waInstance, from);
       } else if (type === "interactive") {
@@ -201,6 +262,34 @@ function handleWebhookGet(req, res, verifyToken) {
   } else {
     res.sendStatus(403);
   }
+}
+
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+const FormData = require("form-data");
+
+// Upload gambar lokal ke WhatsApp untuk mendapatkan media ID
+async function uploadImageToWhatsApp() {
+  const mediaPath = path.join(__dirname, "bpjs-welcome.jpg");
+
+  const formData = new FormData();
+  formData.append("file", fs.createReadStream(mediaPath));
+  formData.append("type", "image/jpeg");
+  formData.append("messaging_product", "whatsapp");
+
+  const response = await axios.post(
+    `https://graph.facebook.com/v19.0/${process.env.WA_PHONE_NUMBER_ID}/media`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        ...formData.getHeaders(),
+      },
+    }
+  );
+
+  return response.data.id; // media_id
 }
 
 module.exports = {

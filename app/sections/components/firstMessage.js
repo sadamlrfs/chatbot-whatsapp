@@ -1,4 +1,15 @@
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function firtMessage(wa, to) {
+  const sendImage = {
+    link: new URL(
+      "https://14a3-114-10-47-92.ngrok-free.app/assets/start-messages.jpg"
+    ).href,
+    caption: " ",
+  };
+
   const button_message = {
     type: "button",
     header: {
@@ -14,7 +25,7 @@ async function firtMessage(wa, to) {
           type: "reply",
           reply: {
             id: "pendaftaran",
-            title: "Pendaftaran ",
+            title: "Pendaftaran",
           },
         },
         {
@@ -34,6 +45,11 @@ async function firtMessage(wa, to) {
       ],
     },
   };
+
+  await wa.messages.image(sendImage, to);
+
+  // Delay 1 detik (1000 ms)
+  await delay(1000);
 
   await wa.messages.interactive(button_message, to);
 }
