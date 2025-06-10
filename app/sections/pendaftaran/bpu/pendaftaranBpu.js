@@ -3,7 +3,7 @@ const sendText = require("../../../utils/sendText");
 const formSteps = [
   {
     key: "nama",
-    prompt: "*Masukkan Nama Lengkap:*\nContoh: Lorem Ipsum",
+    prompt: "*Masukkan Nama Lengkap:*\nContoh: Hendra Aditya",
   },
   {
     key: "nik",
@@ -11,12 +11,11 @@ const formSteps = [
   },
   {
     key: "tanggalLahir",
-    prompt:
-      "*Masukkan Tanggal Lahir (hari-tanggal-tahun) :*\nContoh: 01-01-2000",
+    prompt: "*Masukkan Tanggal Lahir (hari-bulan-tahun) :*\nContoh: 01-01-2000",
   },
   {
     key: "ibuKandung",
-    prompt: "*Masukkan nama ibu kandung:*\nContoh: Lorem Ipsum",
+    prompt: "*Masukkan nama ibu kandung:*\nContoh:  Hendra Aditya",
   },
   {
     key: "pekerjaan",
@@ -124,7 +123,7 @@ async function handleFormBpuReply(wa, from, message) {
           `*Nama Ibu Kandung:* ${d.ibuKandung}\n` +
           `*Pekerjaan:* ${d.pekerjaan}\n` +
           `*Penghasilan:* ${d.penghasilan}\n\n` +
-          `Kami akan memproses klaim JHT kamu. Silakan tunggu informasi selanjutnya🙏🏻`,
+          `Kami akan memproses pendaftaran akum BPU kamu. Silakan tunggu informasi selanjutnya🙏🏻`,
       },
       action: {
         buttons: [

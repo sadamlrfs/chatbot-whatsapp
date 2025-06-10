@@ -5,14 +5,14 @@ const databaseJht = [
     nik: "1234567890123456",
     nama: "Hendra Aditya",
     kpj: "123456",
-    ttl: "BALI, 20 Februari 1995",
+    ttl: "Bali, 20 Februari 1995",
     ibu_kandung: "Rihanna",
     perusahaan: "Herdaya Inti Sejahtera",
   },
 ];
 
 const formJhtSteps = [
-  { key: "nama", prompt: "*Masukkan Nama Lengkap:*\nContoh: Lorem Ipsum" },
+  { key: "nama", prompt: "*Masukkan Nama Lengkap:*\nContoh: Hendra Aditya" },
   {
     key: "nik",
     prompt: "*Masukkan Nomor NIK (16 digit):*\nContoh: 3723000000000000",
@@ -39,7 +39,7 @@ const formJhtSteps = [
   { key: "bank", prompt: "*Masukkan Nama Bank:*\nContoh: BCA, BRI, Mandiri" },
   {
     key: "nama_rekening",
-    prompt: "*Masukkan Nama Pemilik Rekening:* \nContoh: Lorem Ipsum",
+    prompt: "*Masukkan Nama Pemilik Rekening:* \nContoh: Hendra Aditya",
   },
   {
     key: "rekening",
