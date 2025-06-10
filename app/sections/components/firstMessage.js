@@ -5,7 +5,7 @@ function delay(ms) {
 async function firtMessage(wa, to) {
   const sendImage = {
     link: new URL(
-      "https://e8c9-114-10-47-92.ngrok-free.app/assets/start-messages.jpg"
+      "https://chatbot-whatsapp-production-3fcd.up.railway.app/assets/start-messages.jpg"
     ).href,
     caption: " ",
   };
