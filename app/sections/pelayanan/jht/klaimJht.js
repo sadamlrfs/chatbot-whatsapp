@@ -106,31 +106,34 @@ async function handleFormJhtReply(
     const d = state.data;
 
     if (message === "Saya Setuju") {
-      const found = databaseJht.find(
-        (item) =>
-          item.nik === d.nik &&
-          item.nama.toUpperCase() === d.nama.toUpperCase() &&
-          item.kpj === d.kpj
-      );
+      // Komentar validasi database agar semua input dianggap sah
+      /*
+  const found = databaseJht.find(
+    (item) =>
+      item.nik === d.nik &&
+      item.nama.toUpperCase() === d.nama.toUpperCase() &&
+      item.kpj === d.kpj
+  );
 
-      if (!found) {
-        await wa.messages.interactive(
-          {
-            type: "button",
-            header: { type: "text", text: "❌ Data Tidak Ditemukan" },
-            body: {
-              text: "Data yang kamu masukkan tidak ditemukan di sistem kami.\nMohon periksa kembali data yang kamu isi dan isi ulang formulir dengan benar.",
-            },
-            action: {
-              buttons: [
-                { type: "reply", reply: { id: "menu", title: "Menu Utama" } },
-              ],
-            },
-          },
-          from
-        );
-        return true;
-      }
+  if (!found) {
+    await wa.messages.interactive(
+      {
+        type: "button",
+        header: { type: "text", text: "❌ Data Tidak Ditemukan" },
+        body: {
+          text: "Data yang kamu masukkan tidak ditemukan di sistem kami.\nMohon periksa kembali data yang kamu isi dan isi ulang formulir dengan benar.",
+        },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: "menu", title: "Menu Utama" } },
+          ],
+        },
+      },
+      from
+    );
+    return true;
+  }
+  */
 
       await wa.messages.interactive(
         {
@@ -139,7 +142,7 @@ async function handleFormJhtReply(
           body: {
             text: `*Pengajuan klaim JHT* \n NIK ${
               d.nik
-            } a.n. ${d.nama.toUpperCase()}dengan nomor KPJ ${
+            } a.n. ${d.nama.toUpperCase()} dengan nomor KPJ ${
               d.kpj
             } pekerja di ${d.perusahaan.toUpperCase()} sedang dalam proses.\n\nMohon menunggu dengan estimasi penyelesaian klaim dalam *5 hari kerja*. Terima kasih 🙏🏻`,
           },

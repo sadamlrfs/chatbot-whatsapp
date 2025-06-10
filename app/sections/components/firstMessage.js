@@ -5,7 +5,7 @@ function delay(ms) {
 async function firtMessage(wa, to) {
   const sendImage = {
     link: new URL(
-      "https://chatbot-whatsapp-production-3fcd.up.railway.app/assets/start-messages.jpg"
+      "https://168e-114-10-47-92.ngrok-free.app/assets/start-messages.jpg"
     ).href,
     caption: " ",
   };
@@ -48,8 +48,7 @@ async function firtMessage(wa, to) {
 
   await wa.messages.image(sendImage, to);
 
-  // Delay 1 detik (1000 ms)
-  await delay(1000);
+  await delay(2000);
 
   await wa.messages.interactive(button_message, to);
 }

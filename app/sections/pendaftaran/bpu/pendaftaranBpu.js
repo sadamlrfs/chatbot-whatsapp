@@ -25,6 +25,10 @@ const formSteps = [
     key: "penghasilan",
     prompt: "*Masukkan nominal penghasilan rata-rata:*\nContoh: 5000000",
   },
+  {
+    key: "fotoSelfie",
+    prompt: "*Silakan kirim foto selfie sambil memegang KTP sekarang.*",
+  },
 ];
 
 const userFormState = {};
@@ -57,57 +61,90 @@ async function sendStartButton(wa, from) {
   await wa.messages.interactive(button_message, from);
 }
 
-async function handleFormBpuReply(wa, from, message) {
+async function handleFormBpuReply(
+  wa,
+  from,
+  message,
+  type = "text",
+  image = null
+) {
   const state = userFormState[from];
   if (!state) return false;
 
   const currentStep = formSteps[state.step];
   const key = currentStep.key;
-  const value = message.trim();
 
-  if (key === "nik") {
-    const nikRegex = /^\d{16}$/;
-    if (!nikRegex.test(value)) {
+  // ✅ Tangani upload foto selfie
+  if (key === "fotoSelfie") {
+    if (type !== "image" || !image) {
       await sendText(
         wa,
         from,
-        "❌ *NIK tidak valid.*\nHarus terdiri dari 16 digit angka.\nContoh: 3723000000000000\nCoba lagi."
+        "❌ *Mohon kirim foto selfie dalam format gambar*, bukan teks. Coba lagi ya!"
       );
       return true;
     }
-  }
 
-  if (key === "tanggalLahir") {
-    const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-    if (!dateRegex.test(value)) {
-      await sendText(
-        wa,
-        from,
-        "❌ *Format tanggal lahir salah.*\nGunakan format: *dd-mm-yyyy*\nContoh: 01-01-2000\nCoba lagi."
-      );
-      return true;
+    state.data[key] = image;
+    state.step++;
+  } else {
+    const value = message.trim();
+
+    // Validasi sesuai field
+    if (key === "nik") {
+      const nikRegex = /^\d{16}$/;
+      if (!nikRegex.test(value)) {
+        await sendText(
+          wa,
+          from,
+          "❌ *NIK tidak valid.*\nHarus terdiri dari 16 digit angka.\nContoh: 3723000000000000\nCoba lagi."
+        );
+        return true;
+      }
     }
-  }
 
-  if (key === "penghasilan") {
-    const incomeRegex = /^\d+$/;
-    if (!incomeRegex.test(value)) {
-      await sendText(
-        wa,
-        from,
-        "❌ *Nominal penghasilan harus berupa angka.*\nTanpa titik, koma, atau huruf.\nContoh: 5000000\nCoba lagi."
-      );
-      return true;
+    if (key === "tanggalLahir") {
+      const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+      if (!dateRegex.test(value)) {
+        await sendText(
+          wa,
+          from,
+          "❌ *Format tanggal lahir salah.*\nGunakan format: *dd-mm-yyyy*\nContoh: 01-01-2000\nCoba lagi."
+        );
+        return true;
+      }
     }
-  }
 
-  state.data[key] = value;
-  state.step++;
+    if (key === "penghasilan") {
+      const incomeRegex = /^\d+$/;
+      if (!incomeRegex.test(value)) {
+        await sendText(
+          wa,
+          from,
+          "❌ *Nominal penghasilan harus berupa angka.*\nTanpa titik, koma, atau huruf.\nContoh: 5000000\nCoba lagi."
+        );
+        return true;
+      }
+    }
+
+    state.data[key] = value;
+    state.step++;
+  }
 
   if (state.step < formSteps.length) {
     await sendText(wa, from, formSteps[state.step].prompt);
   } else {
     const d = state.data;
+
+    // ✅ Kirim ulang foto selfie
+    if (d.fotoSelfie && d.fotoSelfie.id) {
+      await wa.messages.image(
+        { id: d.fotoSelfie.id, caption: "✅ Foto Selfie dengan KTP" },
+        from
+      );
+    }
+
+    // ✅ Kirim ringkasan data dalam format button
     const button_message = {
       type: "button",
       header: {
@@ -135,7 +172,6 @@ async function handleFormBpuReply(wa, from, message) {
       },
     };
 
-    // Kirim pesan tombol ini:
     await wa.messages.interactive(button_message, from);
 
     delete userFormState[from];
