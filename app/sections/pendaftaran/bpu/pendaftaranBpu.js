@@ -136,7 +136,6 @@ async function handleFormBpuReply(
   } else {
     const d = state.data;
 
-    // ✅ Kirim ulang foto selfie
     if (d.fotoSelfie && d.fotoSelfie.id) {
       await wa.messages.image(
         { id: d.fotoSelfie.id, caption: "✅ Foto Selfie dengan KTP" },
@@ -144,7 +143,6 @@ async function handleFormBpuReply(
       );
     }
 
-    // ✅ Kirim ringkasan data dalam format button
     const button_message = {
       type: "button",
       header: {
